@@ -152,9 +152,10 @@ int main(int argc, char *argv[])
     bool premultiplyAlpha = false;
     nvtt::MipmapFilter mipmapFilter = nvtt::MipmapFilter_Box;
     bool loadAsFloat = false;
-
+    uint bitCount = 0, rmask = 0, gmask = 0, bmask = 0, amask = 0;
+    bool fmtSet;
     const char * externalCompressor = NULL;
-
+    
     bool silent = false;
     bool dds10 = false;
 
@@ -260,6 +261,51 @@ int main(int argc, char *argv[])
         else if (strcmp("-bc5", argv[i]) == 0)
         {
             format = nvtt::Format_BC5;
+        }
+        else if (strcmp("-fmt", argv[i]) == 0)
+        {
+            if (i+1 == argc) break;
+            i++;
+            if (strcmp("rgba8", argv[i]) == 0)
+            {
+                format = nvtt::Format_RGB;
+                fmtSet = true;
+                bitCount = 32;
+                amask = 0xFF000000;
+                rmask = 0x00FF0000;
+                gmask = 0x0000FF00;
+                bmask = 0x000000FF;
+            }
+            else if (strcmp("bgra8", argv[i]) == 0)
+            {
+                format = nvtt::Format_RGBA;
+                fmtSet = true;
+                bitCount = 32;
+                amask = 0xFF000000;
+                rmask = 0x000000FF;
+                gmask = 0x0000FF00;
+                bmask = 0x00FF0000;
+            }
+            else if (strcmp("rgb8", argv[i]) == 0)
+            {
+                format = nvtt::Format_RGB;
+                fmtSet = true;
+                bitCount = 24;
+                amask = 0x00000000;
+                rmask = 0x00FF0000;
+                gmask = 0x0000FF00;
+                bmask = 0x000000FF;
+            }
+            else if (strcmp("bgr8", argv[i]) == 0)
+            {
+                format = nvtt::Format_RGB;
+                fmtSet = true;
+                bitCount = 24;
+                amask = 0x00000000;
+                rmask = 0x000000FF;
+                gmask = 0x0000FF00;
+                bmask = 0x00FF0000;
+            }
         }
 
         // Undocumented option. Mainly used for testing.
@@ -505,7 +551,11 @@ int main(int argc, char *argv[])
     }
     else if (format == nvtt::Format_RGBA)
     {
-        if (luminance)
+        if (fmtSet)
+        {
+            compressionOptions.setPixelFormat(bitCount, rmask, gmask, bmask, amask);
+        }
+        else if (luminance)
         {
             compressionOptions.setPixelFormat(8, 0xff, 0, 0, 0);
         }
