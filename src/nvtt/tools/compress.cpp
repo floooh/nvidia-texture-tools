@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
         {
             if (i+1 == argc) break;
             i++;
-            if (strcmp("rgba8", argv[i]) == 0)
+            if (strcmp("bgra8", argv[i]) == 0)
             {
                 format = nvtt::Format_RGB;
                 fmtSet = true;
@@ -276,25 +276,15 @@ int main(int argc, char *argv[])
                 gmask = 0x0000FF00;
                 bmask = 0x000000FF;
             }
-            else if (strcmp("bgra8", argv[i]) == 0)
+            else if (strcmp("rgba8", argv[i]) == 0)
             {
                 format = nvtt::Format_RGBA;
                 fmtSet = true;
                 bitCount = 32;
-                amask = 0xFF000000;
                 rmask = 0x000000FF;
                 gmask = 0x0000FF00;
                 bmask = 0x00FF0000;
-            }
-            else if (strcmp("rgb8", argv[i]) == 0)
-            {
-                format = nvtt::Format_RGB;
-                fmtSet = true;
-                bitCount = 24;
-                amask = 0x00000000;
-                rmask = 0x00FF0000;
-                gmask = 0x0000FF00;
-                bmask = 0x000000FF;
+                amask = 0xFF000000;
             }
             else if (strcmp("bgr8", argv[i]) == 0)
             {
@@ -302,9 +292,19 @@ int main(int argc, char *argv[])
                 fmtSet = true;
                 bitCount = 24;
                 amask = 0x00000000;
+                rmask = 0x00FF0000;
+                gmask = 0x0000FF00;
+                bmask = 0x000000FF;
+            }
+            else if (strcmp("rgb8", argv[i]) == 0)
+            {
+                format = nvtt::Format_RGB;
+                fmtSet = true;
+                bitCount = 24;
                 rmask = 0x000000FF;
                 gmask = 0x0000FF00;
                 bmask = 0x00FF0000;
+                amask = 0x00000000;
             }
         }
 
