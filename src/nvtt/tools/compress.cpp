@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     nvtt::MipmapFilter mipmapFilter = nvtt::MipmapFilter_Box;
     bool loadAsFloat = false;
     uint bitCount = 0, rmask = 0, gmask = 0, bmask = 0, amask = 0;
-    bool fmtSet;
+    bool rgbFmtSpecified;
     const char * externalCompressor = NULL;
     
     bool silent = false;
@@ -262,49 +262,107 @@ int main(int argc, char *argv[])
         {
             format = nvtt::Format_BC5;
         }
-        else if (strcmp("-fmt", argv[i]) == 0)
+        else if ((format == nvtt::Format_RGB) && (strcmp("-rgbfmt", argv[i]) == 0))
         {
             if (i+1 == argc) break;
             i++;
             if (strcmp("bgra8", argv[i]) == 0)
             {
-                format = nvtt::Format_RGB;
-                fmtSet = true;
+                // Direct3D byte order
+                rgbFmtSpecified = true;
                 bitCount = 32;
-                amask = 0xFF000000;
-                rmask = 0x00FF0000;
-                gmask = 0x0000FF00;
-                bmask = 0x000000FF;
+                amask = 0xFF << 24;
+                rmask = 0xFF << 16;
+                gmask = 0xFF << 8;
+                bmask = 0xFF;
             }
             else if (strcmp("rgba8", argv[i]) == 0)
             {
-                format = nvtt::Format_RGBA;
-                fmtSet = true;
+                // OpenGLES/WebGL byte order
+                rgbFmtSpecified = true;
                 bitCount = 32;
-                rmask = 0x000000FF;
-                gmask = 0x0000FF00;
-                bmask = 0x00FF0000;
-                amask = 0xFF000000;
+                rmask = 0xFF;
+                gmask = 0xFF << 8;
+                bmask = 0xFF << 16;
+                amask = 0xFF << 24;
             }
             else if (strcmp("bgr8", argv[i]) == 0)
             {
-                format = nvtt::Format_RGB;
-                fmtSet = true;
+                // Direct3D byte order
+                rgbFmtSpecified = true;
                 bitCount = 24;
-                amask = 0x00000000;
-                rmask = 0x00FF0000;
-                gmask = 0x0000FF00;
-                bmask = 0x000000FF;
+                amask = 0x0;
+                rmask = 0xFF << 16;
+                gmask = 0xFF << 8;
+                bmask = 0xFF;
             }
             else if (strcmp("rgb8", argv[i]) == 0)
             {
-                format = nvtt::Format_RGB;
-                fmtSet = true;
+                // OpenGLES/WebGL byte order
+                rgbFmtSpecified = true;
                 bitCount = 24;
-                rmask = 0x000000FF;
-                gmask = 0x0000FF00;
-                bmask = 0x00FF0000;
-                amask = 0x00000000;
+                rmask = 0xFF;
+                gmask = 0xFF << 8;
+                bmask = 0xFF << 16;
+                amask = 0x0;
+            }
+            else if (strcmp("bgra4", argv[i]) == 0)
+            {
+                rgbFmtSpecified = true;
+                bitCount = 16;
+                amask = 0x000F;
+                rmask = 0x00F0;
+                gmask = 0x0F00;
+                bmask = 0xF000;
+            }
+            else if (strcmp("rgba4", argv[i]) == 0)
+            {
+                rgbFmtSpecified = true;
+                bitCount = 16;
+                amask = 0x000F;
+                bmask = 0x00F0;
+                gmask = 0x0F00;
+                rmask = 0xF000;
+            }
+            else if (strcmp("bgra5551", argv[i]) == 0)
+            {
+                rgbFmtSpecified = true;
+                bitCount = 16;
+                amask = 0x01;
+                rmask = 0x1F << 1;
+                gmask = 0x1F << 6;
+                bmask = 0x1F << 11;
+            }
+            else if (strcmp("rgba5551", argv[i]) == 0)
+            {
+                rgbFmtSpecified = true;
+                bitCount = 16;
+                amask = 0x01;
+                bmask = 0x1F << 1;
+                gmask = 0x1F << 6; // 0x1F << 6;
+                rmask = 0x1F << 11; // 0x1F << 11;
+            }
+            else if (strcmp("bgr565", argv[i]) == 0)
+            {
+                rgbFmtSpecified = true;
+                bitCount = 16;
+                amask = 0x0;
+                rmask = 0x1F;
+                gmask = 0x3F << 5;
+                bmask = 0x1F << 11;
+            }
+            else if (strcmp("rgb565", argv[i]) == 0)
+            {
+                rgbFmtSpecified = true;
+                bitCount = 16;
+                rmask = 0x1F << 11;
+                gmask = 0x3F << 5;
+                bmask = 0x1F;
+                amask = 0x0;
+            }
+            else
+            {
+                printf("invalid rgb format, defaulting to bgra8\n");
             }
         }
 
@@ -387,6 +445,18 @@ int main(int argc, char *argv[])
         printf("  -bc3n    \tBC3 normal map format (DXT5nm)\n");
         printf("  -bc4     \tBC4 format (ATI1)\n");
         printf("  -bc5     \tBC5 format (3Dc/ATI2)\n\n");
+        
+        printf("RGB format specification (default is bgra8, Direct3D style):\n");
+        printf("  -bgra8   \t32-bit RGBA, 8 bits per channel, D3D byte order (default)\n");
+        printf("  -rgba8   \t32-bit RGBA, 8 bits per channel, OpenGLES byte order\n");
+        printf("  -bgr8    \t24-bit RGB, 8 bits per channel, D3D byte order\n");
+        printf("  -rgb8    \t24-bit RGB, 8 bits per channel, D3D byte order\n");
+        printf("  -bgra4   \t16-bit RGBA, 4 bits per channel\n");
+        printf("  -rgba4   \t16-bit RGBA, 4 bits per channel, reversed\n");
+        printf("  -bgr565  \t16-bit RGB, 5/6/5 bits per channel\n");
+        printf("  -rgb565  \t16-bit RGB, 5/6/5 bits per channel, reversed\n");
+        printf("  -bgra5551\t16-bit RGBA, 5/5/5/1 bits per channel\n");
+        printf("  -rgba5551\t16-bit RGBA, 5/5/5/1 bits per channel\n");
 
         printf("Output options:\n");
         printf("  -silent  \tDo not output progress messages\n");
@@ -551,7 +621,7 @@ int main(int argc, char *argv[])
     }
     else if (format == nvtt::Format_RGBA)
     {
-        if (fmtSet)
+        if (rgbFmtSpecified)
         {
             compressionOptions.setPixelFormat(bitCount, rmask, gmask, bmask, amask);
         }
