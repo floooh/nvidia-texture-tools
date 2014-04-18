@@ -268,17 +268,15 @@ int main(int argc, char *argv[])
             i++;
             if (strcmp("bgra8", argv[i]) == 0)
             {
-                // Direct3D byte order
                 rgbFmtSpecified = true;
                 bitCount = 32;
-                amask = 0xFF << 24;
-                rmask = 0xFF << 16;
-                gmask = 0xFF << 8;
                 bmask = 0xFF;
+                gmask = 0xFF << 8;
+                rmask = 0xFF << 16;
+                amask = 0xFF << 24;
             }
             else if (strcmp("rgba8", argv[i]) == 0)
             {
-                // OpenGLES/WebGL byte order
                 rgbFmtSpecified = true;
                 bitCount = 32;
                 rmask = 0xFF;
@@ -288,43 +286,41 @@ int main(int argc, char *argv[])
             }
             else if (strcmp("bgr8", argv[i]) == 0)
             {
-                // Direct3D byte order
                 rgbFmtSpecified = true;
                 bitCount = 24;
                 amask = 0x0;
-                rmask = 0xFF << 16;
-                gmask = 0xFF << 8;
                 bmask = 0xFF;
+                gmask = 0xFF << 8;
+                rmask = 0xFF << 16;
             }
             else if (strcmp("rgb8", argv[i]) == 0)
             {
-                // OpenGLES/WebGL byte order
                 rgbFmtSpecified = true;
                 bitCount = 24;
+                amask = 0x0;
                 rmask = 0xFF;
                 gmask = 0xFF << 8;
                 bmask = 0xFF << 16;
-                amask = 0x0;
             }
-            else if (strcmp("bgra4", argv[i]) == 0)
+            else if (strcmp("argb4", argv[i]) == 0)
             {
                 rgbFmtSpecified = true;
                 bitCount = 16;
-                amask = 0x000F;
-                rmask = 0x00F0;
-                gmask = 0x0F00;
-                bmask = 0xF000;
+                amask = 0xF;
+                rmask = 0xF << 4;
+                gmask = 0xF << 8;
+                bmask = 0xF << 12;
             }
-            else if (strcmp("rgba4", argv[i]) == 0)
+            else if (strcmp("abgr4", argv[i]) == 0)
             {
                 rgbFmtSpecified = true;
                 bitCount = 16;
-                amask = 0x000F;
-                bmask = 0x00F0;
-                gmask = 0x0F00;
-                rmask = 0xF000;
+                amask = 0xF;
+                bmask = 0xF << 4;
+                gmask = 0xF << 8;
+                rmask = 0xF << 12;
             }
-            else if (strcmp("bgra5551", argv[i]) == 0)
+            else if (strcmp("argb1555", argv[i]) == 0)
             {
                 rgbFmtSpecified = true;
                 bitCount = 16;
@@ -333,7 +329,7 @@ int main(int argc, char *argv[])
                 gmask = 0x1F << 6;
                 bmask = 0x1F << 11;
             }
-            else if (strcmp("rgba5551", argv[i]) == 0)
+            else if (strcmp("abgr1555", argv[i]) == 0)
             {
                 rgbFmtSpecified = true;
                 bitCount = 16;
@@ -342,7 +338,7 @@ int main(int argc, char *argv[])
                 gmask = 0x1F << 6; // 0x1F << 6;
                 rmask = 0x1F << 11; // 0x1F << 11;
             }
-            else if (strcmp("bgr565", argv[i]) == 0)
+            else if (strcmp("rgb565", argv[i]) == 0)
             {
                 rgbFmtSpecified = true;
                 bitCount = 16;
@@ -351,18 +347,18 @@ int main(int argc, char *argv[])
                 gmask = 0x3F << 5;
                 bmask = 0x1F << 11;
             }
-            else if (strcmp("rgb565", argv[i]) == 0)
+            else if (strcmp("bgr565", argv[i]) == 0)
             {
                 rgbFmtSpecified = true;
                 bitCount = 16;
-                rmask = 0x1F << 11;
-                gmask = 0x3F << 5;
-                bmask = 0x1F;
                 amask = 0x0;
+                bmask = 0x1F;
+                gmask = 0x3F << 5;
+                rmask = 0x1F << 11;
             }
             else
             {
-                printf("invalid rgb format, defaulting to bgra8\n");
+                printf("invalid rgb format '%s', defaulting to bgra8\n", argv[i]);
             }
         }
 
@@ -446,17 +442,18 @@ int main(int argc, char *argv[])
         printf("  -bc4     \tBC4 format (ATI1)\n");
         printf("  -bc5     \tBC5 format (3Dc/ATI2)\n\n");
         
-        printf("RGB format specification (default is bgra8, Direct3D style):\n");
-        printf("  -bgra8   \t32-bit RGBA, 8 bits per channel, D3D byte order (default)\n");
-        printf("  -rgba8   \t32-bit RGBA, 8 bits per channel, OpenGLES byte order\n");
-        printf("  -bgr8    \t24-bit RGB, 8 bits per channel, D3D byte order\n");
-        printf("  -rgb8    \t24-bit RGB, 8 bits per channel, D3D byte order\n");
-        printf("  -bgra4   \t16-bit RGBA, 4 bits per channel\n");
-        printf("  -rgba4   \t16-bit RGBA, 4 bits per channel, reversed\n");
-        printf("  -bgr565  \t16-bit RGB, 5/6/5 bits per channel\n");
-        printf("  -rgb565  \t16-bit RGB, 5/6/5 bits per channel, reversed\n");
-        printf("  -bgra5551\t16-bit RGBA, 5/5/5/1 bits per channel\n");
-        printf("  -rgba5551\t16-bit RGBA, 5/5/5/1 bits per channel\n");
+        printf("RGB format specification (requires -rgb):\n");
+        printf("  -rgbfmt format    \twhere 'format' is one of:\n");
+        printf("  \tbgra8 (default when only -rgb is specified)\n");
+        printf("  \trgba8\n");
+        printf("  \tbgr8\n");
+        printf("  \trgb8\n");
+        printf("  \targb4\n");
+        printf("  \tabgr4\n");
+        printf("  \trgb565\n");
+        printf("  \tbgr565\n");
+        printf("  \targb1555\n");
+        printf("  \tabgr1555\n\n");
 
         printf("Output options:\n");
         printf("  -silent  \tDo not output progress messages\n");
