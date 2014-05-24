@@ -132,7 +132,15 @@ void setColorMap(nvtt::InputOptions & inputOptions)
     inputOptions.setNormalizeMipmaps(false);
 }
 
-
+// set options for color map, converted to linear gamma
+void setColorMapToLinearGamma(nvtt::InputOptions& inputOptions)
+{
+    printf("convert to linear gamma\n");
+    inputOptions.setNormalMap(false);
+    inputOptions.setConvertToNormalMap(false);
+    inputOptions.setGamma(2.2f, 1.0f);
+    inputOptions.setNormalizeMipmaps(false);
+}
 
 int main(int argc, char *argv[])
 {
@@ -141,6 +149,7 @@ int main(int argc, char *argv[])
 
     bool alpha = false;
     bool normal = false;
+    bool toLinearGamma = false;
     bool color2normal = false;
     bool wrapRepeat = false;
     bool noMipmaps = false;
@@ -178,6 +187,10 @@ int main(int argc, char *argv[])
         {
             normal = true;
         }
+        else if (strcmp("-tolineargamma", argv[i]) == 0)
+        {
+            toLinearGamma = true;
+        }
         else if (strcmp("-tonormal", argv[i]) == 0)
         {
             color2normal = true;
@@ -210,7 +223,7 @@ int main(int argc, char *argv[])
         {
             loadAsFloat = true;
         }
-
+        
         // Compression options.
         else if (strcmp("-fast", argv[i]) == 0)
         {
@@ -417,17 +430,18 @@ int main(int argc, char *argv[])
         printf("usage: nvcompress [options] infile [outfile]\n\n");
 
         printf("Input options:\n");
-        printf("  -color     \tThe input image is a color map (default).\n");
-        printf("  -alpha     \tThe input image has an alpha channel used for transparency.\n");
-        printf("  -normal    \tThe input image is a normal map.\n");
-        printf("  -tonormal  \tConvert input to normal map.\n");
-        printf("  -clamp     \tClamp wrapping mode (default).\n");
-        printf("  -repeat    \tRepeat wrapping mode.\n");
-        printf("  -nomips    \tDisable mipmap generation.\n");
-        printf("  -premula   \tPremultiply alpha into color channel.\n");
-        printf("  -mipfilter \tMipmap filter. One of the following: box, triangle, kaiser.\n");
-        printf("  -float     \tLoad as floating point image.\n\n");
-
+        printf("  -color         \tThe input image is a color map (default).\n");
+        printf("  -alpha         \tThe input image has an alpha channel used for transparency.\n");
+        printf("  -normal        \tThe input image is a normal map.\n");
+        printf("  -tonormal      \tConvert input to normal map.\n");
+        printf("  -tolineargamma \tConvert input to linear gamma.\n");
+        printf("  -clamp         \tClamp wrapping mode (default).\n");
+        printf("  -repeat        \tRepeat wrapping mode.\n");
+        printf("  -nomips        \tDisable mipmap generation.\n");
+        printf("  -premula       \tPremultiply alpha into color channel.\n");
+        printf("  -mipfilter     \tMipmap filter. One of the following: box, triangle, kaiser.\n");
+        printf("  -float         \tLoad as floating point image.\n\n");
+        
         printf("Compression options:\n");
         printf("  -fast    \tFast compression.\n");
         printf("  -nocuda  \tDo not use cuda compressor.\n");
@@ -582,6 +596,10 @@ int main(int argc, char *argv[])
     if (normal)
     {
         setNormalMap(inputOptions);
+    }
+    else if (toLinearGamma)
+    {
+        setColorMapToLinearGamma(inputOptions);
     }
     else if (color2normal)
     {
